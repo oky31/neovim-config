@@ -10,8 +10,6 @@ return require('packer').startup(function(use)
 
     use('nvim-treesitter/nvim-treesitter', { run = ':TSUpdate' })
 
-    use('theprimeagen/harpoon')
-
     use('mbbill/undotree')
 
     use('tpope/vim-fugitive')
@@ -35,5 +33,9 @@ return require('packer').startup(function(use)
 
     use({ 'rose-pine/neovim', as = 'rose-pine' })
 
+--    use ("rebelot/kanagawa.nvim")
+
     use ('stevearc/aerial.nvim')
+
+    use ('lewis6991/gitsigns.nvim')
 end)
