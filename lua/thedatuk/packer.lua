@@ -38,4 +38,7 @@ return require('packer').startup(function(use)
     use ('stevearc/aerial.nvim')
 
     use ('lewis6991/gitsigns.nvim')
+
+    -- for line indentation
+    use ('lukas-reineke/indent-blankline.nvim')
 end)
