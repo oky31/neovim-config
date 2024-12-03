@@ -41,4 +41,21 @@ return require('packer').startup(function(use)
 
     -- for line indentation
     use ('lukas-reineke/indent-blankline.nvim')
+
+    -- for comment
+    use {
+        'numToStr/Comment.nvim',
+        config = function()
+            require('Comment').setup()
+        end
+    }
+
+    -- for dart
+    use {
+        'akinsho/flutter-tools.nvim',
+        requires = {
+            'nvim-lua/plenary.nvim',
+            'stevearc/dressing.nvim', -- optional for vim.ui.select
+        },
+    }
 end)
