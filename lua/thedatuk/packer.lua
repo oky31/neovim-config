@@ -58,4 +58,7 @@ return require('packer').startup(function(use)
             'stevearc/dressing.nvim', -- optional for vim.ui.select
         },
     }
+
+    -- for copilot
+    use ('github/copilot.vim')
 end)
