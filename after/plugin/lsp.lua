@@ -1,25 +1,44 @@
-local lsp_zero = require('lsp-zero')
-
-lsp_zero.on_attach(function(client, bufnr)
-    -- see :help lsp-zero-keybindings
-    -- to learn the available actions
-    lsp_zero.default_keymaps({
-        buffer = bufnr
-    })
-end)
-
+-- Setup mason first
 require('mason').setup({})
-require('mason-lspconfig').setup({
-    ensure_installed = {},
-    handlers = {
-        lsp_zero.default_setup,
-    },
+
+-- Basic LSP keymaps
+local on_attach = function(client, bufnr)
+    local opts = { buffer = bufnr, remap = false }
+
+    vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
+    vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
+    vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end, opts)
+    vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end, opts)
+    vim.keymap.set("n", "[d", function() vim.diagnostic.goto_next() end, opts)
+    vim.keymap.set("n", "]d", function() vim.diagnostic.goto_prev() end, opts)
+    vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
+    vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
+    vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
+    vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
+end
+
+-- Setup individual language servers (nvim 0.11+ API)
+vim.lsp.config('lua_ls', {
+    on_attach = on_attach,
+    settings = {
+        Lua = {
+            diagnostics = {
+                globals = { 'vim' }
+            }
+        }
+    }
 })
+
+vim.lsp.config('ts_ls', {
+    on_attach = on_attach,
+})
+
+vim.lsp.enable({ 'lua_ls', 'ts_ls' })
 
 -- vim.api.nvim_set_hl(0, "CmpNormal", { bg = "#FF0000" })
 
 local cmp = require('cmp')
-local cmp_action = require('lsp-zero').cmp_action()
+local luasnip = require('luasnip')
 local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
 cmp.setup({
@@ -44,8 +63,16 @@ cmp.setup({
         ['<C-Space>'] = cmp.mapping.complete(),
 
         -- Navigate between snippet placeholder
-        ['<C-f>'] = cmp_action.luasnip_jump_forward(),
-        ['<C-b>'] = cmp_action.luasnip_jump_backward(),
+        ['<C-f>'] = cmp.mapping(function()
+            if luasnip.jumpable(1) then
+                luasnip.jump(1)
+            end
+        end, { 'i', 's' }),
+        ['<C-b>'] = cmp.mapping(function()
+            if luasnip.jumpable(-1) then
+                luasnip.jump(-1)
+            end
+        end, { 'i', 's' }),
 
         -- Scroll up and down in the completion documentation
         ['<C-u>'] = cmp.mapping.scroll_docs(-4),
