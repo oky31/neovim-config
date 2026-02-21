@@ -60,4 +60,10 @@ return require('packer').startup(function(use)
 
     -- for copilot
     use ('github/copilot.vim')
+
+    -- Copilot Chat
+    use {
+        'CopilotC-Nvim/CopilotChat.nvim',
+        requires = { { 'nvim-lua/plenary.nvim' }, { 'github/copilot.vim' } }
+    }
 end)
