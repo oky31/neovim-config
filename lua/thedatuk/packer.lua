@@ -38,6 +38,10 @@ return require('packer').startup(function(use)
 
     use ('lewis6991/gitsigns.nvim')
 
+    -- File tree sidebar
+    use 'nvim-tree/nvim-tree.lua'
+    use 'nvim-tree/nvim-web-devicons'
+
     -- for line indentation
     use ('lukas-reineke/indent-blankline.nvim')
 
