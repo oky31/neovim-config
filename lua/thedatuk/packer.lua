@@ -66,4 +66,13 @@ return require('packer').startup(function(use)
         'CopilotC-Nvim/CopilotChat.nvim',
         requires = { { 'nvim-lua/plenary.nvim' }, { 'github/copilot.vim' } }
     }
+
+    -- Markdown rendering
+    use {
+        'MeanderingProgrammer/render-markdown.nvim',
+        after = { 'nvim-treesitter' },
+        requires = {
+            { 'echasnovski/mini.nvim', opt = true },
+        },
+    }
 end)
