@@ -16,7 +16,12 @@ return require('packer').startup(function(use)
 
     -- LSP management and servers
     use { 'williamboman/mason.nvim' }
+    use { 'williamboman/mason-lspconfig.nvim' }
     use { 'neovim/nvim-lspconfig' }
+
+    use { 'VonHeikemen/lsp-zero.nvim', branch = 'v3.x' }
+
+    use 'folke/which-key.nvim'
 
     -- Autocompletion
     use { 'hrsh7th/nvim-cmp' }

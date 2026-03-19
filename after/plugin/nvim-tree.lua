@@ -39,10 +39,10 @@ nvim_tree.setup({
         relativenumber = false,
         signcolumn = "yes",
     },
-    actions = {
+        actions = {
         open_file = {
             quit_on_open = false,
-            resize_window = true,
+            resize_window = false,
             window_picker = {
                 enable = true,
                 chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890",

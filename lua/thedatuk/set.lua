@@ -11,3 +11,19 @@ vim.opt.incsearch = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
+
+vim.api.nvim_create_autocmd('BufRead', {
+    pattern = '*.go',
+    callback = function()
+        vim.opt_local.expandtab = false
+        vim.opt_local.tabstop = 4
+        vim.opt_local.shiftwidth = 4
+    end,
+})
+
+vim.api.nvim_create_autocmd('BufWritePre', {
+    pattern = '*.go',
+    callback = function()
+        vim.lsp.buf.format({ async = false })
+    end,
+})

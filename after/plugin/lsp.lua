@@ -1,98 +1,101 @@
--- Setup mason first
 require('mason').setup({})
 
--- Basic LSP keymaps
-local on_attach = function(client, bufnr)
-    local opts = { buffer = bufnr, remap = false }
+local lsp_zero = require('lsp-zero')
 
-    vim.keymap.set("n", "gd", function() vim.lsp.buf.definition() end, opts)
-    vim.keymap.set("n", "K", function() vim.lsp.buf.hover() end, opts)
-    vim.keymap.set("n", "<leader>vws", function() vim.lsp.buf.workspace_symbol() end, opts)
-    vim.keymap.set("n", "<leader>vd", function() vim.diagnostic.open_float() end, opts)
-    vim.keymap.set("n", "[d", function() vim.diagnostic.goto_next() end, opts)
-    vim.keymap.set("n", "]d", function() vim.diagnostic.goto_prev() end, opts)
-    vim.keymap.set("n", "<leader>vca", function() vim.lsp.buf.code_action() end, opts)
-    vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
-    vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
-    vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-end
+lsp_zero.on_attach(function(client, bufnr)
+    lsp_zero.default_keymaps({ buffer = bufnr })
 
--- Setup individual language servers (nvim 0.11+ API)
-vim.lsp.config('lua_ls', {
-    on_attach = on_attach,
-    settings = {
-        Lua = {
-            diagnostics = {
-                globals = { 'vim' }
-            }
-        }
-    }
+    vim.keymap.set("n", "K", vim.lsp.buf.hover, { buffer = bufnr })
+    vim.keymap.set("n", "gd", vim.lsp.buf.definition, { buffer = bufnr })
+    vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { buffer = bufnr })
+    vim.keymap.set("n", "gr", vim.lsp.buf.references, { buffer = bufnr })
+    vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { buffer = bufnr })
+    vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { buffer = bufnr })
+    vim.keymap.set("n", "gs", vim.lsp.buf.signature_help, { buffer = bufnr })
+    vim.keymap.set("n", "<leader>gf", function()
+        vim.lsp.buf.format({ async = false })
+    end, { buffer = bufnr })
+    vim.keymap.set("n", "<leader>xe", function()
+        local diagnostics = vim.diagnostic.get(0)
+        if #diagnostics == 0 then
+            print("No diagnostics found")
+            return
+        end
+        local qf_items = {}
+        for _, d in ipairs(diagnostics) do
+            table.insert(qf_items, {
+                bufnr = d.bufnr,
+                lnum = d.lnum - 1,
+                col = d.col,
+                text = d.message .. " [" .. d.source .. "]",
+            })
+        end
+        vim.fn.setqflist(qf_items)
+        vim.cmd('copen')
+    end, { buffer = bufnr })
+end)
+
+require('mason-lspconfig').setup({
+    ensure_installed = { 'lua_ls', 'ts_ls', 'gopls' },
+    handlers = {
+        lsp_zero.default_setup,
+        lua_ls = function()
+            local lua_opts = lsp_zero.nvim_lua_ls()
+            require('lspconfig').lua_ls.setup(lua_opts)
+        end,
+        gopls = function()
+            require('lspconfig').gopls.setup({
+                capabilities = {
+                    documentFormattingProvider = true,
+                },
+            })
+        end,
+    },
 })
-
-vim.lsp.config('ts_ls', {
-    on_attach = on_attach,
-})
-
-vim.lsp.enable({ 'lua_ls', 'ts_ls' })
-
--- vim.api.nvim_set_hl(0, "CmpNormal", { bg = "#FF0000" })
 
 local cmp = require('cmp')
-local luasnip = require('luasnip')
-local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
 cmp.setup({
-    window = {
-        completion = {
-            border = "rounded",
-            winhighlight = "Normal:CmpNormal",
-        },
-        documentation = {
-            border = "rounded",
-            winhighlight = "Normal:CmpNormal",
-        },
-        hover = {
-            winhighlight = "Normal:CmpNormal"
-        }
-    },
     mapping = cmp.mapping.preset.insert({
-        -- `Enter` key to confirm completion
         ['<CR>'] = cmp.mapping.confirm({ select = false }),
-
-        -- Ctrl+Space to trigger completion menu
         ['<C-Space>'] = cmp.mapping.complete(),
-
-        -- Navigate between snippet placeholder
-        ['<C-f>'] = cmp.mapping(function()
-            if luasnip.jumpable(1) then
-                luasnip.jump(1)
+        ['<C-f>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.scroll_docs(4)
+            else
+                fallback()
             end
         end, { 'i', 's' }),
-        ['<C-b>'] = cmp.mapping(function()
-            if luasnip.jumpable(-1) then
-                luasnip.jump(-1)
+        ['<C-d>'] = cmp.mapping(function(fallback)
+            if cmp.visible() then
+                cmp.scroll_docs(-4)
+            else
+                fallback()
             end
         end, { 'i', 's' }),
-
-        -- Scroll up and down in the completion documentation
-        ['<C-u>'] = cmp.mapping.scroll_docs(-4),
-        ['<C-d>'] = cmp.mapping.scroll_docs(4),
-    })
+    }),
+    sources = {
+        { name = 'nvim_lsp' },
+        { name = 'luasnip' },
+        { name = 'buffer' },
+        { name = 'path' },
+    },
 })
 
-local set_hl_for_floating_window = function()
-    vim.api.nvim_set_hl(0, 'NormalFloat', {
-        link = 'Normal',
-    })
-    vim.api.nvim_set_hl(0, 'FloatBorder', {
-        bg = 'none',
-    })
-end
-
-set_hl_for_floating_window()
-
-vim.api.nvim_create_autocmd('ColorScheme', {
-    pattern = '*',
-    desc = 'Avoid overwritten by loading color schemes later',
-    callback = set_hl_for_floating_window,
+vim.diagnostic.config({
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+    severity_sort = true,
+    virtual_text = {
+        prefix = '●',
+    },
+    float = {
+        focusable = false,
+        style = 'minimal',
+        border = 'rounded',
+        source = 'always',
+        header = '',
+        prefix = '',
+    },
 })
